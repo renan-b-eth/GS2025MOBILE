@@ -28,12 +28,12 @@ export default function TabLayout() {
            <Drawer.Screen
         name="delivered"
         options={
-            {title: 'Clinica Credenciadas'}
+            {title: 'Gerenciador de Abrigos'}
         } />
             <Drawer.Screen
         name="about"
         options={
-            {title: 'Dentistas'}
+            {title: 'Abrigos Disponiveis'}
         } />
         
     </Drawer>
