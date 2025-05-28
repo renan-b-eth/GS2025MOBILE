@@ -52,9 +52,9 @@ export default function Delivered() {
                     style={styles.map}
                     region={mapRegion}
                     showsUserLocation={true}
-                    // onRegionChangeComplete={setMapRegion} // Opcional: permitir que o usuário mova o mapa pequeno
+                    
                 >
-                    {/* Poderíamos adicionar um marcador para a localização do usuário se showsUserLocation não for suficiente */}
+                    {}
                 </MapView>
             </View>
 

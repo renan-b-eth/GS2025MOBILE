@@ -1,58 +1,72 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from "react-native";
+// app/login.tsx (ou mantenha Preparing.tsx se preferir, mas ajuste as rotas)
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ActivityIndicator, Keyboard } from "react-native";
 import React, { useState, useEffect } from 'react';
-import { Link } from 'expo-router';
-import { useRouter } from 'expo-router';
-import { autenticacaoService } from './api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, useRouter } from 'expo-router';
+import { auth } from '../firebaseConfig'; // Importe a configuração do Firebase
+import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 
-export default function Preparing() {
+export default function Preparing() { 
   const router = useRouter();
-  const CREDENCIAIS_VALIDAS = {
-    email: 'adm@adm.com',
-    senha: 'adm'
-  };
-
-  const [erro, setErro] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(true); // Para verificar o estado de auth inicial
 
-  const verificarLogin = () => {
-    if (email === CREDENCIAIS_VALIDAS.email && senha === CREDENCIAIS_VALIDAS.senha) {
-      router.push('/delivered');
-    } else {
-      setErro('Email ou senha incorretos');
-    }
-  };
-
+  // Observador do estado de autenticação
   useEffect(() => {
-    const verificarTokenExistente = async () => {
-      const tokenSalvo = await AsyncStorage.getItem('token');
-      if (tokenSalvo) {
-        router.push('/delivered');
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        console.log("Usuário logado, redirecionando:", user.email);
+        router.replace('/delivered'); 
+      } else {
+        // Usuário está deslogado
+        console.log("Nenhum usuário logado.");
+        setCarregando(false);
       }
-    };
-    verificarTokenExistente();
-  }, []);
+    });
 
-  const handleLogin = async () => {
+    return () => unsubscribe();
+  }, [router]); 
+
+  const handleLoginFirebase = async () => {
+    if (!email || !senha) {
+      setErro('Por favor, preencha o email e a senha.');
+      return;
+    }
+    Keyboard.dismiss(); 
+    setCarregando(true);
+    setErro(''); 
+
     try {
-      const response = await autenticacaoService.login(email, senha);
-      await AsyncStorage.setItem('token', response.token);
-      router.push('/delivered');
-    } catch (error) {
-      setErro('Email ou senha incorretos');
+      await signInWithEmailAndPassword(auth, email, senha);
+    } catch (error: any) {
+      console.error("Erro no login com Firebase:", error);
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        setErro('Email ou senha incorretos.');
+      } else if (error.code === 'auth/invalid-email') {
+        setErro('O formato do email é inválido.');
+      } else {
+        setErro('Ocorreu um erro ao tentar fazer login. Tente novamente.');
+      }
+    } finally {
+      setCarregando(false);
     }
   };
+
+  if (carregando) {
+    return (
+      <View style={[styles.container, styles.containerCarregando]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.carregandoTexto}>Verificando sessão...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Image
-        source={require('./logo.png')}
-        style={{
-          width: 200,
-          height: 200,
-          resizeMode: 'contain'
-        }}
+        source={require('../assets/logo.png')} 
+        style={styles.logo}
       />
       <TextInput
         style={styles.input}
@@ -61,6 +75,7 @@ export default function Preparing() {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        autoComplete="email"
       />
       <TextInput
         style={styles.input}
@@ -68,23 +83,34 @@ export default function Preparing() {
         value={senha}
         onChangeText={setSenha}
         secureTextEntry={true}
+        autoComplete="password"
       />
+
+      {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+
       <TouchableOpacity
         style={styles.botaoContainer}
-        onPress={handleLogin}
+        onPress={handleLoginFirebase}
+        disabled={carregando} 
       >
-        <Text style={{ color: '#fff' }}>Logar</Text>
+        {carregando && !erro ? ( 
+             <ActivityIndicator size="small" color="#fff" />
+         ) : (
+             <Text style={styles.textoBotao}>Logar</Text>
+         )}
       </TouchableOpacity>
-      <Link href="/cadastro" style={styles.botaoContainer}>
-        <Text style={{ color: '#fff' }}>Cadastro</Text>
+
+      <Link href="/cadastro" asChild>
+         <TouchableOpacity style={styles.botaoLink}>
+             <Text style={styles.textoLink}>Não tem conta? Cadastre-se</Text>
+         </TouchableOpacity>
       </Link>
-      <TouchableOpacity
-    style={styles.container}
-    onPress={() => router.navigate('/sent')}
->
-    <Text style={styles.title2}>Recuperar Senha</Text>
-    {erro && <Text style={styles.erro}>{erro}</Text>}
-</TouchableOpacity>
+
+      <Link href="/recuperarSenha" asChild>
+         <TouchableOpacity style={styles.botaoLink}>
+             <Text style={styles.textoLinkVermelho}>Esqueceu a senha?</Text>
+         </TouchableOpacity>
+      </Link>
     </View>
   );
 }
@@ -97,38 +123,65 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20
   },
-  title: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: "#000",
-    marginTop: 20
+  containerCarregando: {
+     justifyContent: 'center',
   },
-  title2: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: "red",
-    paddingVertical: 2,
-    marginTop: 20
+  carregandoTexto: {
+     marginTop: 10,
+     fontSize: 16,
+     color: '#555',
+  },
+  logo: {
+    width: 150, 
+    height: 150, 
+    resizeMode: 'contain',
+    marginBottom: 30,
   },
   input: {
-    width: '80%',
-    height: 40,
-    borderBottomColor: '#000',
-    borderBottomWidth: 1,
-    paddingHorizontal: 10,
-    marginBottom: 15
+    width: '90%',
+    height: 50,   
+    borderColor: '#ccc', 
+    borderWidth: 1,     
+    borderRadius: 8,  
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
   },
   botaoContainer: {
     backgroundColor: '#007AFF',
-    paddingVertical: 12,
+    paddingVertical: 14, 
     paddingHorizontal: 24,
     borderRadius: 8,
     elevation: 3,
+    width: '90%',
+    alignItems: 'center',
+    marginBottom: 10,
+    minHeight: 50, 
+    justifyContent: 'center',
+  },
+  textoBotao: {
     color: '#fff',
-    marginBottom: 10
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  botaoLink: {
+     marginTop: 15,
+     paddingVertical: 8,
+  },
+  textoLink: {
+     color: '#007AFF',
+     fontSize: 15,
+     fontWeight: '500',
+  },
+  textoLinkVermelho: {
+     color: "red",
+     fontSize: 15,
+     fontWeight: '500',
   },
   erro: {
     color: 'red',
-    marginTop: 10
+    marginBottom: 10, 
+    textAlign: 'center',
+    width: '90%',
   }
 });

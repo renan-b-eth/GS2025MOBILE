@@ -1,17 +1,16 @@
 export interface Shelter {
     id: string;
-    name: string; // Descrição
-    latitude: number; // Ainda útil para o mapa pequeno ou para obter a localidade
+    name: string;
+    latitude: number; 
     longitude: number;
-    locality: string; // Texto da localidade/endereço
+    locality: string; 
     temperature?: string;
-    // resources: string[]; // Removido da exibição textual, mas pode manter nos dados
     capacity: number;
     currentOccupancy: number;
     availableSpots: number;
 }
 
-// Dados fictícios (poderia estar em um arquivo data.ts ou ser buscado de uma API)
+// Dados fictícios 
 export const MOCK_SHELTERS: Shelter[] = [
     {
         id: 'shelter1',

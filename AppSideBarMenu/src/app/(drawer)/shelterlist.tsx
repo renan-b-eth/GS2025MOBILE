@@ -1,13 +1,9 @@
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from 'react';
-import { MOCK_SHELTERS, Shelter } from './interfaces'; // Supondo que você criou um arquivo data.ts
-// Se não criou, cole as definições de Shelter e MOCK_SHELTERS aqui ou importe de onde estiverem
+import { MOCK_SHELTERS, Shelter } from './interfaces'; 
 import { Stack, useRouter } from 'expo-router';
 
 
-// Supondo que MOCK_SHELTERS e Shelter estão definidos em algum lugar importável
-// ou defina-os aqui se preferir (como no exemplo anterior).
-// Para este exemplo, vou simular a busca aqui.
 
 export default function ShelterListScreen() {
     const [shelters, setShelters] = useState<Shelter[]>([]);
@@ -18,14 +14,12 @@ export default function ShelterListScreen() {
     const findAvailableShelters = async () => {
         setLoading(true);
         console.log("Buscando abrigos (simulação)...");
-        // Em um app real, você faria uma chamada a uma API aqui
         setTimeout(() => {
-            // Filtra apenas abrigos com vagas para o exemplo
             const available = MOCK_SHELTERS.map(s => ({...s, availableSpots: s.capacity - s.currentOccupancy}));
-            // .filter(shelter => shelter.availableSpots > 0); // Descomente para mostrar apenas com vagas
+        
             setShelters(available);
             setLoading(false);
-        }, 1000); // Simula delay de rede
+        }, 1000); 
     };
 
     useEffect(() => {
@@ -43,13 +37,7 @@ export default function ShelterListScreen() {
             <Text style={[styles.shelterDetail, item.availableSpots > 0 ? styles.spotsAvailable : styles.spotsFull]}>
                 Vagas: {item.availableSpots}
             </Text>
-            {/* Exemplo de como adicionar um botão de check-in ou mais detalhes no futuro:
-            {item.availableSpots > 0 && (
-                <TouchableOpacity style={styles.checkInButton} onPress={() => {/ ... /}}>
-                    <Text style={styles.checkInButtonText}>Check-in</Text>
-                </TouchableOpacity>
-            )}
-            */}
+            {}
         </View>
     );
 
@@ -64,8 +52,7 @@ export default function ShelterListScreen() {
 
     return (
         <View style={styles.container}>
-             {/* Opção para mudar o título da tela se o _layout.tsx não for usado */}
-            {/* <Stack.Screen options={{ title: "Abrigos Disponíveis" }} /> */}
+             {}
             <FlatList
                 data={shelters}
                 renderItem={renderItem}
@@ -99,7 +86,7 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0',
     },
     shelterFull: {
-        backgroundColor: '#ffebee', // Um tom claro de vermelho para indicar lotado
+        backgroundColor: '#ffebee', 
         borderColor: '#ffcdd2',
     },
     shelterName: {
@@ -127,19 +114,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#777',
     },
-    // Estilos para botão de check-in (exemplo futuro)
-    /*
-    checkInButton: {
-        marginTop: 10,
-        backgroundColor: '#28a745',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 5,
-        alignSelf: 'flex-start',
-    },
-    checkInButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    */
+   
 });
