@@ -51,7 +51,7 @@ export default function Home() {
         <View style={styles.container}>
             <Text style={styles.title}></Text>
             <Image
-                source={require('./logo.png')}
+                source={require('./logo2.jpeg')}
                 style={{
                     width: 200,
                     height: 200,

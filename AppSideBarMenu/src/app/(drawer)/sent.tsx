@@ -31,7 +31,7 @@ export default function Sent() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('./logo.png')}
+        source={require('./logo2.jpeg')}
         style={{
           width: 200,
           height: 200,
