@@ -138,7 +138,7 @@ export default function Preparing() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/recuperarSenha" asChild>
+      <Link href="/sent" asChild>
         <TouchableOpacity style={styles.botaoLink}>
           <Text style={styles.textoLinkVermelho}>Esqueceu a senha?</Text>
         </TouchableOpacity>
