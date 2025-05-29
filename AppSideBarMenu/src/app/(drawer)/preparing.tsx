@@ -2,7 +2,7 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ActivityIndicator, Keyboard } from "react-native";
 import React, { useState, useEffect } from 'react';
 import { Link, useRouter } from 'expo-router';
-import { auth } from '../firebaseConfig'; // Importe a configuração do Firebase
+import { auth } from './firebaseConfig'; // Importe a configuração do Firebase
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 
 export default function Preparing() { 
@@ -65,7 +65,7 @@ export default function Preparing() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/logo.png')} 
+        source={require('../../../assets/images/logo.png')} 
         style={styles.logo}
       />
       <TextInput

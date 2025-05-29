@@ -11,7 +11,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { auth } from '../firebaseConfig'; // Importe sua configuração do Firebase
+import { auth } from './firebaseConfig'; // Importe sua configuração do Firebase
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 
 // Interface para os dados do formulário de cadastro
@@ -107,7 +107,7 @@ export default function CadastroScreen() { // Renomeado para clareza
     <View style={styles.container}>
       <Text style={styles.title}>Criar Nova Conta</Text>
       <Image
-        source={require('../assets/logo.png')} // Certifique-se que o caminho para o logo está correto
+        source={require('../../../assets/images/logo.png')} // Certifique-se que o caminho para o logo está correto
         style={styles.logo}
       />
 
@@ -163,7 +163,7 @@ export default function CadastroScreen() { // Renomeado para clareza
 
        <TouchableOpacity
           style={styles.botaoLink}
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/login')} // Volta para login
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} // Volta para login
         >
           <Text style={styles.textoLink}>Já tem uma conta? Faça Login</Text>
         </TouchableOpacity>
