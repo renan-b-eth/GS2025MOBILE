@@ -35,6 +35,12 @@ export default function TabLayout() {
         options={
             {title: 'Abrigos Disponiveis'}
         } />
+
+        <Drawer.Screen
+        name="ShelterMonitorScreen"
+        options={
+            {title: 'Shelter'}
+        } />
         
     </Drawer>
   );
