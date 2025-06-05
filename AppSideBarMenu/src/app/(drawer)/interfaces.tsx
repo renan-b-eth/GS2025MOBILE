@@ -42,7 +42,7 @@ export const MOCK_SHELTERS: Shelter[] = [
         locality: 'Zona Sul, Perto do Parque Ibirapuera',
         temperature: '21°C',
         capacity: 30,
-        currentOccupancy: 30, // Lotado
+        currentOccupancy: 30, 
         get availableSpots() { return this.capacity - this.currentOccupancy; }
     },
     {

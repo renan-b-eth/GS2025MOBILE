@@ -1,8 +1,8 @@
-// app/recuperarSenha.tsx (ou o nome que você deu para esta rota)
+
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ActivityIndicator, Alert, Keyboard } from "react-native";
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router'; // Se precisar de navegação após o envio
-import { auth } from './firebaseConfig'; // Ajuste o caminho se necessário
+import { useRouter } from 'expo-router'; 
+import { auth } from './firebaseConfig'; 
 import { sendPasswordResetEmail } from 'firebase/auth';
 
 export default function Sent() {
@@ -17,7 +17,7 @@ export default function Sent() {
       setErro('Por favor, insira seu endereço de email.');
       return;
     }
-    // Validação básica de email
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         setErro('Por favor, insira um email válido.');
@@ -43,15 +43,11 @@ export default function Sent() {
         "Email Enviado",
         `Se ${email} estiver registrado, você receberá um link para redefinir sua senha. Verifique sua caixa de entrada e spam.`
       );
-      // Opcional: Limpar o campo de email ou redirecionar
-      // setEmail('');
-      // router.back(); // Ou para a tela de login
+      
     } catch (error: any) {
       console.error("Erro ao enviar email de redefinição de senha:", error.code, error.message);
       if (error.code === 'auth/user-not-found') {
-        // Por segurança, não informamos se o usuário não foi encontrado,
-        // apenas dizemos que o email foi enviado se a conta existir.
-        // A mensagem de sucesso já cobre isso.
+        
         setMensagemSucesso(`Se ${email} estiver registrado, você receberá um link para redefinir sua senha. Verifique sua caixa de entrada e spam.`);
       } else if (error.code === 'auth/invalid-email') {
         setErro('O formato do email fornecido é inválido.');
@@ -69,7 +65,7 @@ export default function Sent() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../../assets/images/logo.png')} // ATENÇÃO: Verifique este caminho para o logo
+        source={require('../../../assets/images/logo.png')} 
         style={styles.logo}
       />
       <Text style={styles.title}>Recuperar Senha</Text>
@@ -103,7 +99,7 @@ export default function Sent() {
 
       <TouchableOpacity
         style={styles.botaoLink}
-        onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} // Volta para login
+        onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} 
       >
         <Text style={styles.textoLink}>Voltar para o Login</Text>
       </TouchableOpacity>

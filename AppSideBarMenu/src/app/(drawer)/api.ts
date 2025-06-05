@@ -1,7 +1,7 @@
-// api.ts
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Interfaces para tipagem
+
 interface Clinica {
   id: string;
   nome: string;
@@ -24,10 +24,10 @@ interface ErroAutenticacao {
 export const autenticacaoService = {
   async cadastrar(nome: string, email: string, senha: string, responsavel: string) {
     try {
-      // Gera um ID único para a clínica
+      
       const id = Date.now().toString();
       
-      // Cria objeto clínica
+      
       const clinica: Clinica = {
         id,
         nome,
@@ -36,10 +36,10 @@ export const autenticacaoService = {
         responsavel
       };
 
-      // Salva dados no AsyncStorage
+      
       await AsyncStorage.setItem('clinicas', JSON.stringify([clinica]));
       
-      // Gera token de autenticação
+    
       const token = `token-${id}`;
       
       return {
@@ -57,11 +57,11 @@ export const autenticacaoService = {
 
   async login(email: string, senha: string) {
     try {
-      // Busca clínicas salvas
+     
       const clinicasJson = await AsyncStorage.getItem('clinicas');
       const clinicas = clinicasJson ? JSON.parse(clinicasJson) : [];
 
-      // Encontra clínica pelo email e senha
+     
       const clinica = clinicas.find((c: { email: string; senha: string; }) => c.email === email && c.senha === senha);
 
       if (!clinica) {
@@ -72,7 +72,7 @@ export const autenticacaoService = {
         };
       }
 
-      // Gera token de autenticação
+     
       const token = `token-${clinica.id}`;
 
       return {

@@ -1,40 +1,38 @@
-// app/shelterMonitor.tsx (ou o nome/caminho que preferir na sua estrutura de rotas)
+
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router'; // Para o botão de voltar, se necessário
+import { useRouter } from 'expo-router'; 
 
-// Para ícones, você pode usar @expo/vector-icons
-// import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Configurações da simulação
-const SIMULATION_INTERVAL = 3000; // Atualizar a cada 3 segundos
-const TEMP_MIN = 18; // Celsius
-const TEMP_MAX = 28; // Celsius
-const HUMIDITY_MIN = 30; // %
-const HUMIDITY_MAX = 70; // %
-const CO2_MIN = 400; // ppm
-const CO2_MAX = 2000; // ppm
+
+const SIMULATION_INTERVAL = 3000; 
+const TEMP_MIN = 18; 
+const TEMP_MAX = 28; 
+const HUMIDITY_MIN = 30; 
+const HUMIDITY_MAX = 70; 
+const CO2_MIN = 400; 
+const CO2_MAX = 2000; 
 const AQI_CATEGORIES = ['Boa', 'Moderada', 'Ruim', 'Muito Ruim', 'Perigosa'];
-const OCCUPANCY_MAX = 50; // Capacidade máxima do abrigo (exemplo)
+const OCCUPANCY_MAX = 50; 
 
 interface ShelterData {
   temperatura: number;
   umidade: number;
-  qualidadeAr: string; // Ou poderia ser um valor numérico de AQI
+  qualidadeAr: string; 
   nivelCO2: number;
   lotacaoAtual: number;
 }
 
-// Função para gerar um valor aleatório dentro de um intervalo
+
 const getRandomValue = (min: number, max: number, decimals: number = 1): number => {
   return parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
 };
 
-// Função para simular uma pequena variação em um valor existente
+
 const simulateChange = (currentValue: number, min: number, max: number, maxChange: number): number => {
-  let change = (Math.random() - 0.5) * 2 * maxChange; // Variação entre -maxChange e +maxChange
+  let change = (Math.random() - 0.5) * 2 * maxChange; 
   let newValue = currentValue + change;
-  newValue = Math.max(min, Math.min(max, newValue)); // Garante que o valor fique dentro dos limites
+  newValue = Math.max(min, Math.min(max, newValue)); 
   return parseFloat(newValue.toFixed(1));
 };
 
@@ -52,31 +50,31 @@ export default function ShelterMonitorScreen() {
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Simulação inicial após um pequeno delay
+    
     const initialLoadTimer = setTimeout(() => {
         setIsLoading(false);
     }, 500);
 
-    // Inicia a simulação dinâmica
+    
     intervalIdRef.current = setInterval(() => {
       setShelterData(prevData => {
         const novaLotacao = Math.max(0, Math.min(OCCUPANCY_MAX, prevData.lotacaoAtual + Math.floor(Math.random() * 5) - 2)); // Simula entrada/saída
         let novoNivelCO2 = simulateChange(prevData.nivelCO2, CO2_MIN, CO2_MAX, 50);
-        // Ajusta CO2 com base na lotação (muito simplificado)
+        
         if (novaLotacao > prevData.lotacaoAtual) novoNivelCO2 += 20 * (novaLotacao - prevData.lotacaoAtual);
         if (novaLotacao < prevData.lotacaoAtual) novoNivelCO2 -= 10 * (prevData.lotacaoAtual - novaLotacao);
         novoNivelCO2 = Math.max(CO2_MIN, Math.min(CO2_MAX, novoNivelCO2));
 
         let novaQualidadeAr = prevData.qualidadeAr;
-        if (novoNivelCO2 > 1500) novaQualidadeAr = AQI_CATEGORIES[3]; // Ruim
-        else if (novoNivelCO2 > 1000) novaQualidadeAr = AQI_CATEGORIES[2]; // Moderada para Ruim
-        else if (novoNivelCO2 > 700) novaQualidadeAr = AQI_CATEGORIES[1]; // Moderada
-        else novaQualidadeAr = AQI_CATEGORIES[0]; // Boa
+        if (novoNivelCO2 > 1500) novaQualidadeAr = AQI_CATEGORIES[3]; 
+        else if (novoNivelCO2 > 1000) novaQualidadeAr = AQI_CATEGORIES[2]; 
+        else if (novoNivelCO2 > 700) novaQualidadeAr = AQI_CATEGORIES[1]; 
+        else novaQualidadeAr = AQI_CATEGORIES[0];
 
         return {
           temperatura: simulateChange(prevData.temperatura, TEMP_MIN, TEMP_MAX, 0.5),
           umidade: Math.round(simulateChange(prevData.umidade, HUMIDITY_MIN, HUMIDITY_MAX, 3)),
-          qualidadeAr: novaQualidadeAr, // Ou alternar aleatoriamente: AQI_CATEGORIES[Math.floor(Math.random() * AQI_CATEGORIES.length)],
+          qualidadeAr: novaQualidadeAr,
           nivelCO2: Math.round(novoNivelCO2),
           lotacaoAtual: novaLotacao,
         };
@@ -92,12 +90,12 @@ export default function ShelterMonitorScreen() {
   }, []);
 
   const getQualityAirColor = (quality: string) => {
-    if (quality === 'Boa') return '#2ECC71'; // Verde
-    if (quality === 'Moderada') return '#F1C40F'; // Amarelo
-    if (quality === 'Ruim') return '#E67E22'; // Laranja
-    if (quality === 'Muito Ruim') return '#E74C3C'; // Vermelho
-    if (quality === 'Perigosa') return '#9B59B6'; // Roxo
-    return '#7F8C8D'; // Cinza Padrão
+    if (quality === 'Boa') return '#2ECC71'; 
+    if (quality === 'Moderada') return '#F1C40F'; 
+    if (quality === 'Ruim') return '#E67E22'; 
+    if (quality === 'Muito Ruim') return '#E74C3C'; 
+    if (quality === 'Perigosa') return '#9B59B6'; 
+    return '#7F8C8D'; 
   };
 
   if (isLoading) {
@@ -116,7 +114,7 @@ export default function ShelterMonitorScreen() {
 
         <View style={styles.gridContainer}>
           <View style={[styles.dataCard, styles.largeCard]}>
-            {/* <MaterialCommunityIcons name="thermometer" size={32} color="#E74C3C" style={styles.icon} /> */}
+            {}
             <Text style={styles.iconEmoji}>🌡️</Text>
             <Text style={styles.dataLabel}>Temperatura</Text>
             <Text style={[styles.dataValue, { color: shelterData.temperatura > 25 ? '#E74C3C' : shelterData.temperatura < 20 ? '#3498DB' : '#2C3E50' }]}>
@@ -125,14 +123,14 @@ export default function ShelterMonitorScreen() {
           </View>
 
           <View style={[styles.dataCard, styles.largeCard]}>
-            {/* <MaterialCommunityIcons name="water-percent" size={32} color="#3498DB" style={styles.icon} /> */}
+            {}
             <Text style={styles.iconEmoji}>💧</Text>
             <Text style={styles.dataLabel}>Umidade</Text>
             <Text style={styles.dataValue}>{shelterData.umidade} %</Text>
           </View>
 
           <View style={[styles.dataCard, styles.fullWidthCard]}>
-            {/* <MaterialCommunityIcons name="weather-windy" size={32} color={getQualityAirColor(shelterData.qualidadeAr)} style={styles.icon} /> */}
+            {}
             <Text style={styles.iconEmoji}>🌬️</Text>
             <Text style={styles.dataLabel}>Qualidade do Ar</Text>
             <Text style={[styles.dataValue, { color: getQualityAirColor(shelterData.qualidadeAr) }]}>
@@ -141,14 +139,14 @@ export default function ShelterMonitorScreen() {
           </View>
 
           <View style={styles.dataCard}>
-            {/* <MaterialCommunityIcons name="molecule-co2" size={32} color="#7F8C8D" style={styles.icon} /> */}
+            {}
             <Text style={styles.iconEmoji}>💨</Text>
             <Text style={styles.dataLabel}>Nível de CO₂</Text>
             <Text style={styles.dataValue}>{shelterData.nivelCO2} ppm</Text>
           </View>
 
           <View style={styles.dataCard}>
-            {/* <MaterialCommunityIcons name="account-group" size={32} color="#2C3E50" style={styles.icon} /> */}
+            {}
             <Text style={styles.iconEmoji}>👥</Text>
             <Text style={styles.dataLabel}>Lotação</Text>
             <Text style={styles.dataValue}>{shelterData.lotacaoAtual} / {OCCUPANCY_MAX}</Text>
@@ -157,7 +155,7 @@ export default function ShelterMonitorScreen() {
 
         <TouchableOpacity
           style={styles.backButtonMain}
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} // Ajuste para onde voltar
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} 
         >
           <Text style={styles.backButtonTextMain}>Voltar</Text>
         </TouchableOpacity>
@@ -203,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 15,
-    width: '48%', // Para dois cards por linha
+    width: '48%', 
     marginBottom: 15,
     alignItems: 'center',
     elevation: 3,
@@ -213,18 +211,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   largeCard: {
-    // Estilos adicionais se necessário para cards maiores
+    
   },
   fullWidthCard: {
-    width: '100%', // Para um card que ocupa a largura toda
+    width: '100%', 
   },
   iconEmoji: {
-    fontSize: 32, // Tamanho do emoji
+    fontSize: 32, 
     marginBottom: 8,
   },
-  // icon: { // Se usar @expo/vector-icons
-  //   marginBottom: 8,
-  // },
+ 
   dataLabel: {
     fontSize: 14,
     color: '#5A6A7A',
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
   },
   backButtonMain: {
     marginTop: 30,
-    backgroundColor: '#6C757D', // Cinza
+    backgroundColor: '#6C757D', 
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 25,

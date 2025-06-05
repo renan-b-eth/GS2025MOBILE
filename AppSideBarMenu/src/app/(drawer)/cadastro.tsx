@@ -11,18 +11,18 @@ import {
   Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { auth } from './firebaseConfig'; // Importe sua configuração do Firebase
+import { auth } from './firebaseConfig'; 
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 
-// Interface para os dados do formulário de cadastro
+
 export interface CadastroFormData {
   nome: string;
   email: string;
   senha: string;
-  confirmarSenha?: string; // Adicionado para confirmação de senha
+  confirmarSenha?: string; 
 }
 
-export default function CadastroScreen() { // Renomeado para clareza
+export default function CadastroScreen() { 
   const router = useRouter();
   const [dados, setDados] = useState<CadastroFormData>({
     nome: '',
@@ -46,7 +46,7 @@ export default function CadastroScreen() { // Renomeado para clareza
       setErro('A senha deve ter pelo menos 6 caracteres.');
       return false;
     }
-    // Validação básica de email (pode ser mais robusta)
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(dados.email)) {
         setErro('Por favor, insira um email válido.');
@@ -64,11 +64,11 @@ export default function CadastroScreen() { // Renomeado para clareza
     setErro('');
 
     try {
-      //Criar o usuário com email e senha no Firebase Auth
+      
       const userCredential = await createUserWithEmailAndPassword(auth, dados.email, dados.senha);
       const user = userCredential.user;
 
-      //Atualizar o perfil do usuário com o nome (displayName)
+      
       if (user) {
         await updateProfile(user, {
           displayName: dados.nome,
@@ -84,7 +84,7 @@ export default function CadastroScreen() { // Renomeado para clareza
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/preparing'); // Rota da sua tela de login
+        router.replace('/preparing'); 
       }
 
     } catch (error: any) {
@@ -107,7 +107,7 @@ export default function CadastroScreen() { // Renomeado para clareza
     <View style={styles.container}>
       <Text style={styles.title}>Criar Nova Conta</Text>
       <Image
-        source={require('../../../assets/images/logo.png')} // Certifique-se que o caminho para o logo está correto
+        source={require('../../../assets/images/logo.png')} 
         style={styles.logo}
       />
 
@@ -163,7 +163,7 @@ export default function CadastroScreen() { // Renomeado para clareza
 
        <TouchableOpacity
           style={styles.botaoLink}
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} // Volta para login
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} 
         >
           <Text style={styles.textoLink}>Já tem uma conta? Faça Login</Text>
         </TouchableOpacity>
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   logo: {
-    width: 120, // Ajustado
-    height: 120, // Ajustado
+    width: 120,
+    height: 120, 
     resizeMode: 'contain',
     marginBottom: 25,
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: 'red',
-    borderWidth: 1, // Garante que a borda vermelha seja visível
+    borderWidth: 1, 
   },
   botaoContainer: {
     backgroundColor: '#007AFF',

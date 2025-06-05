@@ -5,12 +5,12 @@ import * as Location from 'expo-location'; // Mantenha a instalação: npx expo 
 import { useRouter } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
-const MAP_HEIGHT_PERCENTAGE = 0.4; // 40% da altura da tela para o mapa
+const MAP_HEIGHT_PERCENTAGE = 0.4;
 
 export default function Delivered() {
     const router = useRouter();
     const [mapRegion, setMapRegion] = useState({
-        latitude: -23.550520, // São Paulo
+        latitude: -23.550520,
         longitude: -46.633308,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
@@ -31,7 +31,7 @@ export default function Delivered() {
                 setMapRegion({
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
-                    latitudeDelta: 0.02, // Zoom maior na localização do usuário
+                    latitudeDelta: 0.02, 
                     longitudeDelta: 0.01,
                 });
             } catch (error) {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f0f0f0",
         alignItems: "center",
-        paddingTop: 50, // Espaço para o título
+        paddingTop: 50, 
         paddingHorizontal: 20,
     },
     title: {
@@ -90,16 +90,16 @@ const styles = StyleSheet.create({
         color: '#555',
     },
     mapContainer: {
-        width: width * 0.9, // 90% da largura da tela
+        width: width * 0.9, 
         height: height * MAP_HEIGHT_PERCENTAGE,
         borderRadius: 10,
-        overflow: 'hidden', // Para o borderRadius funcionar no MapView
+        overflow: 'hidden', 
         marginBottom: 30,
         borderWidth: 1,
         borderColor: '#ccc',
     },
     map: {
-        ...StyleSheet.absoluteFillObject, // Faz o mapa preencher o container
+        ...StyleSheet.absoluteFillObject, 
     },
     button: {
         backgroundColor: '#007AFF',

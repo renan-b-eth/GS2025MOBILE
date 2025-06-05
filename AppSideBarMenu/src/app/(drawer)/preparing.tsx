@@ -1,10 +1,7 @@
-// app/login.tsx (ou Preparing.tsx)
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ActivityIndicator, Keyboard } from "react-native";
-import React, { useState, useEffect, useRef } from 'react'; // Adicionado useRef
+import React, { useState, useEffect, useRef } from 'react'; 
 import { Link, useRouter } from 'expo-router';
-// !! ATENÇÃO !! VERIFIQUE ESTE CAMINHO DE IMPORTAÇÃO. DEVE SER RELATIVO AO LOCAL DESTE ARQUIVO.
-// Se firebaseConfig.tsx está na raiz do projeto e este arquivo está em app/, use '../firebaseConfig'
-import { auth } from './firebaseConfig'; // Ou o caminho correto, ex: '../firebaseConfig'
+import { auth } from './firebaseConfig'; 
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 
 export default function Preparing() {
@@ -15,14 +12,12 @@ export default function Preparing() {
   const [verificandoSessao, setVerificandoSessao] = useState(true);
   const [processandoLogin, setProcessandoLogin] = useState(false);
 
-  // Ref para controlar se o componente ainda está montado
-  // Isso ajuda a evitar erros de "setState em componente desmontado"
   const isMounted = useRef(true);
 
   useEffect(() => {
-    isMounted.current = true; // Componente montado
+    isMounted.current = true; 
     return () => {
-      isMounted.current = false; // Componente será desmontado
+      isMounted.current = false; 
       console.log("LoginScreen: useEffect principal desmontado.");
     };
   }, []);
@@ -39,21 +34,18 @@ export default function Preparing() {
 
     console.log("LoginScreen: Configurando onAuthStateChanged.");
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
-      if (!isMounted.current) return; // Não fazer nada se o componente já desmontou
+      if (!isMounted.current) return; 
 
       console.log("LoginScreen: onAuthStateChanged disparado. Usuário:", user ? user.email : null);
       if (user) {
         console.log("LoginScreen: Usuário detectado, redirecionando para /delivered.");
-        setVerificandoSessao(false); // Garante que não estamos mais verificando
-        setProcessandoLogin(false); // Garante que o botão de login não está mais em estado de processamento
+        setVerificandoSessao(false); 
+        setProcessandoLogin(false); 
         router.replace('/delivered');
       } else {
         console.log("LoginScreen: Nenhum usuário detectado.");
         setVerificandoSessao(false);
-        // Se estávamos explicitamente processando um login que falhou resultando em user null,
-        // o handleLoginFirebase já terá setado processandoLogin para false no catch.
-        // Se o usuário simplesmente deslogou de outra tela e voltou para cá,
-        // processandoLogin já deve ser false.
+        
       }
     });
 
@@ -61,7 +53,7 @@ export default function Preparing() {
       console.log("LoginScreen: Desinscrevendo onAuthStateChanged.");
       unsubscribe();
     };
-  }, [router]); // Removi 'processandoLogin' daqui, pois o listener deve ser estável
+  }, [router]); 
 
   const handleLoginFirebase = async () => {
     if (!isMounted.current) return;
@@ -81,14 +73,7 @@ export default function Preparing() {
     try {
       await signInWithEmailAndPassword(auth, email, senha);
       console.log("LoginScreen: signInWithEmailAndPassword bem-sucedido para:", email);
-      // Sucesso! O onAuthStateChanged vai pegar a mudança e redirecionar.
-      // Não precisamos definir setProcessandoLogin(false) aqui se o componente desmontar.
-      // No entanto, se o onAuthStateChanged demorar ou houver um piscar,
-      // definir aqui pode ser considerado, mas geralmente não é necessário.
-      // Por segurança, e para o caso de o redirect demorar um instante:
-      // if (isMounted.current) {
-      //   setProcessandoLogin(false); // O onAuthStateChanged deve lidar com o redirect.
-      // }
+     
     } catch (error: any) {
       console.error("LoginScreen: Erro no login com Firebase:", error.code, error.message);
       let errorMessage = 'Ocorreu um erro ao tentar fazer login.';
@@ -101,7 +86,7 @@ export default function Preparing() {
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = 'Falha na rede. Verifique sua conexão e tente novamente.';
       }
-      // Só atualiza o estado se o componente ainda estiver montado
+      
       if (isMounted.current) {
         setErro(errorMessage);
         setProcessandoLogin(false);
@@ -121,7 +106,7 @@ export default function Preparing() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../../assets/images/logo.png')} // ATENÇÃO: Verifique este caminho para o logo
+        source={require('../../../assets/images/logo.png')} 
         style={styles.logo}
       />
       <TextInput
@@ -147,7 +132,7 @@ export default function Preparing() {
       <TouchableOpacity
         style={styles.botaoContainer}
         onPress={handleLoginFirebase}
-        disabled={processandoLogin || verificandoSessao} // Desabilita se estiver verificando sessão também
+        disabled={processandoLogin || verificandoSessao} 
       >
         {processandoLogin ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -171,7 +156,6 @@ export default function Preparing() {
   );
 }
 
-// Seus estilos existentes (copie e cole aqui)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

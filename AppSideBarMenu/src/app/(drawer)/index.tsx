@@ -7,19 +7,19 @@ export default function Home() {
     const router = useRouter();
     const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-    // Função para redirecionar após 3 segundos (apenas na primeira vez)
+   
     useEffect(() => {
         if (isFirstLoad) {
             const timer = setTimeout(() => {
                 router.push('/preparing');
                 setIsFirstLoad(false);
             }, 3500);
-            // Limpa o timer quando o componente é desmontado
+            
             return () => clearTimeout(timer);
         }
     }, [isFirstLoad]);
 
-    // Funções utilitárias para AsyncStorage
+   
     const storeData = async (key: string, value: string) => {
         try {
             await AsyncStorage.setItem(key, value);

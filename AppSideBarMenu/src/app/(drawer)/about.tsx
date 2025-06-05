@@ -8,17 +8,17 @@ import {
     Dimensions,
     FlatList,
     ActivityIndicator,
-    SafeAreaView, // Importante para iOS
-    ScrollView, // Para o dashboard, se necessário
+    SafeAreaView, 
+    ScrollView, 
 } from "react-native";
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
-// import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; // Descomente se for usar
+
 
 const { width, height } = Dimensions.get('window');
 const MAP_HEIGHT_PERCENTAGE = 0.35;
 
-// 1. INTERFACE DO ABRIGO
+
 interface Shelter {
     id: string;
     name: string;
@@ -30,13 +30,12 @@ interface Shelter {
     resources: string[];
     capacity: number;
     currentOccupancy: number;
-    availableSpots: number; // Será dinamicamente calculado ou atualizado
+    availableSpots: number; 
     contact?: string;
     iconName?: string;
 }
 
-// 2. DADOS FICTÍCIOS INICIAIS DOS ABRIGOS
-// A lotação inicial será usada, mas os check-ins vão alterá-la em memória.
+
 const INITIAL_MOCK_SHELTERS_DATA: Omit<Shelter, 'availableSpots'>[] = [
     {
         id: 'shelter1',
@@ -48,7 +47,7 @@ const INITIAL_MOCK_SHELTERS_DATA: Omit<Shelter, 'availableSpots'>[] = [
         temperature: '20°C',
         resources: ['Água', 'Alimentação Quente', 'Cobertores', 'Kit Higiene'],
         capacity: 100,
-        currentOccupancy: 75, // Lotação inicial
+        currentOccupancy: 75, 
         contact: '(11) 91234-5678',
         iconName: 'home-city',
     },
@@ -95,7 +94,7 @@ const INITIAL_MOCK_SHELTERS_DATA: Omit<Shelter, 'availableSpots'>[] = [
     },
 ];
 
-// 3. COMPONENTE PRINCIPAL
+
 export default function ShelterApp() {
     const [currentView, setCurrentView] = useState<'mapView' | 'listView' | 'dashboardView'>('mapView');
     const [mapRegion, setMapRegion] = useState({
@@ -108,7 +107,7 @@ export default function ShelterApp() {
     const [shelters, setShelters] = useState<Shelter[]>([]);
     const [loadingData, setLoadingData] = useState(true);
 
-    // Inicializa os abrigos com 'availableSpots' calculado
+    
     const initializeShelters = () => {
         const initialized = INITIAL_MOCK_SHELTERS_DATA.map(s => ({
             ...s,
@@ -138,7 +137,7 @@ export default function ShelterApp() {
                     console.error("Erro ao obter localização: ", error);
                 }
             }
-            initializeShelters(); // Inicializa os abrigos após tentar pegar localização
+            initializeShelters(); 
         };
         requestLocationAndInitialize();
     }, []);
@@ -172,15 +171,15 @@ export default function ShelterApp() {
     };
 
 
-    // Navegação interna
+    
     const navigateToView = (view: 'mapView' | 'listView' | 'dashboardView') => {
         if (view === 'listView' && shelters.length === 0 && !loadingData) {
-            initializeShelters(); // Recarrega se a lista estiver vazia (improvável com a lógica atual)
+            initializeShelters();
         }
         setCurrentView(view);
     };
 
-    // Componente Card do Abrigo
+   
     const ShelterCard = ({ item }: { item: Shelter }) => (
         <View style={styles.card}>
             {item.iconName && <Text style={styles.cardIconPlaceholder}>{item.iconName === 'home-city' ? '🏙️' : item.iconName === 'hospital-building' ? '🏥' : item.iconName === 'nature-people' ? '🌳' : '👥'}</Text>}
@@ -230,7 +229,7 @@ export default function ShelterApp() {
         </View>
     );
 
-    // Visualização da Lista
+    
     const renderListView = () => (
         <View style={styles.viewContainerFull}>
             <View style={styles.listHeader}>
@@ -254,7 +253,7 @@ export default function ShelterApp() {
         </View>
     );
 
-    // Visualização do Dashboard
+    
     const renderDashboardView = () => (
         <View style={styles.viewContainerFull}>
             <View style={styles.listHeader}>
@@ -291,7 +290,7 @@ export default function ShelterApp() {
     );
 
 
-    if (loadingData && shelters.length === 0) { // Loader inicial antes de qualquer coisa
+    if (loadingData && shelters.length === 0) { 
         return (
             <SafeAreaView style={[styles.fullScreen, styles.loaderContainer]}>
                 <ActivityIndicator size="large" color="#007AFF" />
@@ -309,23 +308,23 @@ export default function ShelterApp() {
     );
 }
 
-// 4. ESTILOS
+
 const styles = StyleSheet.create({
     fullScreen: {
         flex: 1,
         backgroundColor: '#F4F7FC',
     },
-    viewContainer: { // Para mapView com padding
+    viewContainer: { 
         flex: 1,
         alignItems: 'center',
-        paddingTop: 20, // Ajustado para SafeAreaView
+        paddingTop: 20, 
         paddingHorizontal: 20,
     },
-    viewContainerFull: { // Para listView e dashboardView
+    viewContainerFull: { 
         flex: 1,
     },
     headerTitle: {
-        fontSize: 24, // Reduzido um pouco
+        fontSize: 24, 
         fontWeight: 'bold',
         color: '#2C3E50',
         marginBottom: 5,
@@ -334,7 +333,7 @@ const styles = StyleSheet.create({
     headerSubtitle: {
         fontSize: 15,
         color: '#5A6A7A',
-        marginBottom: 20, // Reduzido
+        marginBottom: 20, 
         textAlign: 'center',
     },
     mapWrapper: {
@@ -342,7 +341,7 @@ const styles = StyleSheet.create({
         height: height * MAP_HEIGHT_PERCENTAGE,
         borderRadius: 15,
         overflow: 'hidden',
-        marginBottom: 20, // Reduzido
+        marginBottom: 20, 
         elevation: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
@@ -357,35 +356,35 @@ const styles = StyleSheet.create({
     },
     mainButton: {
         backgroundColor: '#007AFF',
-        paddingVertical: 14, // Reduzido
+        paddingVertical: 14, 
         paddingHorizontal: 20,
-        borderRadius: 25, // Mais arredondado
+        borderRadius: 25, 
         elevation: 3,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3,
-        marginBottom: 12, // Espaço entre botões
+        marginBottom: 12, 
         alignItems: 'center',
     },
     secondaryButton: {
-        backgroundColor: '#4CAF50', // Verde para o dashboard
+        backgroundColor: '#4CAF50', 
     },
     mainButtonText: {
         color: '#FFFFFF',
-        fontSize: 16, // Reduzido
+        fontSize: 16, 
         fontWeight: '600',
     },
     listHeader: {
         paddingHorizontal: 20,
-        paddingTop: 15, // Ajustado para SafeAreaView
+        paddingTop: 15, 
         paddingBottom: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomWidth: 1,
         borderBottomColor: '#E0E0E0',
-        backgroundColor: '#F4F7FC', // Para consistência
+        backgroundColor: '#F4F7FC', 
     },
     backButton: { padding: 8 },
     backButtonText: { fontSize: 16, color: '#007AFF', fontWeight: '500' },
@@ -422,7 +421,7 @@ const styles = StyleSheet.create({
     checkInButton: { backgroundColor: '#3498DB', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
     checkInButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
 
-    // --- Estilos do Dashboard ---
+    
     dashboardItem: {
         backgroundColor: '#fff',
         padding: 15,
@@ -451,12 +450,12 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#e0e0e0',
         borderRadius: 10,
-        overflow: 'hidden', // Garante que o fill não ultrapasse as bordas
+        overflow: 'hidden', 
         marginTop: 4,
     },
     progressBarFill: {
         height: '100%',
-        backgroundColor: '#4CAF50', // Verde para progresso
-        borderRadius: 10, // Para cantos arredondados no fill também
+        backgroundColor: '#4CAF50', 
+        borderRadius: 10, 
     },
 });
