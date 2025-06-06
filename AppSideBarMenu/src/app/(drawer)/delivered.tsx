@@ -60,7 +60,7 @@ export default function Delivered() {
 
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => router.push('/about')}
+                onPress={() => router.push('/shelterApp')}
             >
                 <Text style={styles.buttonText}>Visualizar Abrigos Disponíveis</Text>
             </TouchableOpacity>
