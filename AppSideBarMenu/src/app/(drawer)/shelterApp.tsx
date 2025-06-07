@@ -9,7 +9,7 @@ import {
     ActivityIndicator,
     SafeAreaView,
 } from "react-native";
-import axios from 'axios'; 
+import axios from 'axios';
 
 
 interface Shelter {
@@ -39,18 +39,13 @@ export default function ShelterApp() {
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-
-    const fetchShelters = useCallback(async () => {
+    const fetchShelters = useCallback(async (showLoadingIndicator = false) => {
         console.log("Buscando dados da API com Axios...");
-        
-        if (shelters.length > 0) {
+        if (showLoadingIndicator || shelters.length === 0) {
             setLoadingData(true);
         }
         try {
-            
             const response = await axios.get<Shelter[]>(API_URL);
-            
-           
             const data = response.data;
 
             const processedShelters = data.map(shelter => ({
@@ -67,45 +62,79 @@ export default function ShelterApp() {
         } finally {
             setLoadingData(false);
         }
-    }, [shelters.length]); 
+    }, [shelters.length]);
 
-    
     useEffect(() => {
         fetchShelters(); 
-
         const intervalId = setInterval(() => {
-            fetchShelters();
+            fetchShelters(); 
         }, 10000); 
-
         return () => clearInterval(intervalId);
     }, [fetchShelters]);
 
-    const handleCheckIn = (shelter: ShelterWithAvailability) => {
-        if (shelter.availableSpots > 0) {
-            Alert.alert(
-                "Confirmação de Check-in",
-                `Você está prestes a registrar um check-in em "${shelter.nome}". Após a confirmação, os dados serão atualizados em breve.`,
-                [
-                    { text: "Cancelar" },
-                    { 
-                        text: "OK", 
-                        onPress: () => {
-                          
-                            console.log(`Check-in simulado para o abrigo ${shelter.id}. Aguardando atualização da API.`);
+    
+    const handleCheckIn = async (shelterToCheckIn: ShelterWithAvailability) => {
+        
+        if (shelterToCheckIn.availableSpots <= 0) {
+            Alert.alert("Abrigo Lotado", `Não há mais vagas disponíveis em "${shelterToCheckIn.nome}".`);
+            return;
+        }
+
+       
+        Alert.alert(
+            "Confirmar Check-in",
+            `Deseja registrar a entrada de 1 pessoa no abrigo "${shelterToCheckIn.nome}"?`,
+            [
+                { text: "Cancelar", style: "cancel" },
+                { 
+                    text: "Confirmar", 
+                    onPress: async () => {
+                        
+                        const updatedShelter = {
+                            ...shelterToCheckIn,
+                            ocupacao: shelterToCheckIn.ocupacao + 1, 
+                        };
+                       
+                        delete (updatedShelter as any).availableSpots;
+                        delete (updatedShelter as any).resourcesList;
+
+                        try {
+                           
+                            await axios.put(`${API_URL}/${shelterToCheckIn.id}`, updatedShelter);
+
+                           
+                            setShelters(prevShelters => 
+                                prevShelters.map(s => {
+                                    if (s.id === shelterToCheckIn.id) {
+                                        const newOccupancy = s.ocupacao + 1;
+                                        return {
+                                            ...s,
+                                            ocupacao: newOccupancy,
+                                            availableSpots: s.capacidade - newOccupancy,
+                                        };
+                                    }
+                                    return s;
+                                })
+                            );
+
+                            Alert.alert("Sucesso!", "Check-in realizado com sucesso.");
+
+                        } catch (error) {
+                            // 6. Tratar erros da API
+                            console.error("Erro ao fazer check-in:", error);
+                            Alert.alert("Erro", "Não foi possível realizar o check-in. Tente novamente.");
                         }
                     }
-                ]
-            );
-        } else {
-            Alert.alert("Abrigo Lotado", `Não há mais vagas em "${shelter.nome}".`);
-        }
+                }
+            ]
+        );
     };
     
     const navigateToView = (view: 'listView' | 'dashboardView') => {
         setCurrentView(view);
     };
 
-    
+
     const ShelterCard = ({ item }: { item: ShelterWithAvailability }) => (
         <View style={styles.card}>
             <Text style={styles.cardTitle}>{item.nome}</Text>
@@ -129,11 +158,13 @@ export default function ShelterApp() {
             <Text style={styles.cardInfo}><Text style={styles.infoEmoji}>👤</Text> Responsável: {item.responsavel}</Text>
             <Text style={styles.cardInfo}><Text style={styles.infoEmoji}>📞</Text> Contato: {item.telefone}</Text>
             
-            {item.availableSpots > 0 && (
-                <TouchableOpacity style={styles.checkInButton} onPress={() => handleCheckIn(item)}>
-                    <Text style={styles.checkInButtonText}>FAZER CHECK-IN</Text>
-                </TouchableOpacity>
-            )}
+            <TouchableOpacity 
+                style={[styles.checkInButton, item.availableSpots <= 0 && styles.checkInButtonDisabled]} 
+                onPress={() => handleCheckIn(item)}
+                disabled={item.availableSpots <= 0}
+            >
+                <Text style={styles.checkInButtonText}>FAZER CHECK-IN</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -155,7 +186,7 @@ export default function ShelterApp() {
                     renderItem={({ item }) => <ShelterCard item={item} />}
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContentContainer}
-                    onRefresh={fetchShelters}
+                    onRefresh={() => fetchShelters(true)}
                     refreshing={loadingData}
                 />
             )}
@@ -179,7 +210,7 @@ export default function ShelterApp() {
                     data={[...shelters].sort((a, b) => (b.ocupacao / b.capacidade) - (a.ocupacao / a.capacidade))}
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContentContainer}
-                    onRefresh={fetchShelters}
+                    onRefresh={() => fetchShelters(true)}
                     refreshing={loadingData}
                     renderItem={({ item }) => (
                         <View style={styles.dashboardItem}>
@@ -201,7 +232,6 @@ export default function ShelterApp() {
         </View>
     );
     
-    // --- Renderização Principal (sem alteração) ---
     if (loadingData && shelters.length === 0 && !error) {
         return (
             <SafeAreaView style={[styles.fullScreen, styles.loaderContainer]}>
@@ -220,7 +250,7 @@ export default function ShelterApp() {
 }
 
 
-// --- Estilos (sem alteração) ---
+
 const styles = StyleSheet.create({
     fullScreen: { flex: 1, backgroundColor: '#F4F7FC' },
     viewContainerFull: { flex: 1 },
@@ -247,6 +277,9 @@ const styles = StyleSheet.create({
     resourceTags: { flexDirection: 'row', flexWrap: 'wrap' },
     resourceTag: { backgroundColor: '#EAECEE', color: '#5D6D7E', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, marginRight: 6, marginBottom: 6, fontSize: 12, fontWeight: '500' },
     checkInButton: { backgroundColor: '#3498DB', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+    checkInButtonDisabled: {
+        backgroundColor: '#a9a9a9', 
+    },
     checkInButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
     dashboardItem: { backgroundColor: '#fff', padding: 15, marginBottom: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e0e0e0' },
     dashboardItemName: { fontSize: 17, fontWeight: 'bold', color: '#333', marginBottom: 8 },

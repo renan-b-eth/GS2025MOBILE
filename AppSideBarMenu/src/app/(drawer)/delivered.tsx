@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Dimensions } from "react-native";
 import React, { useState, useEffect } from 'react';
-import MapView from 'react-native-maps'; // Mantenha a instalação: npx expo install react-native-maps
-import * as Location from 'expo-location'; // Mantenha a instalação: npx expo install expo-location
+import MapView from 'react-native-maps';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
+import { auth } from './firebaseConfig';
+import { signOut } from 'firebase/auth';
 
 const { width, height } = Dimensions.get('window');
 const MAP_HEIGHT_PERCENTAGE = 0.4;
@@ -15,9 +17,16 @@ export default function Delivered() {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
     });
-    const [userLocation, setUserLocation] = useState<Location.LocationObjectCoords | null>(null);
+
+    const [userName, setUserName] = useState('');
 
     useEffect(() => {
+        
+        const user = auth.currentUser;
+        if (user) {
+            setUserName(user.displayName || 'Usuário');
+        }
+
         const getUserLocation = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
@@ -27,7 +36,6 @@ export default function Delivered() {
 
             try {
                 let location = await Location.getCurrentPositionAsync({});
-                setUserLocation(location.coords);
                 setMapRegion({
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
@@ -42,17 +50,28 @@ export default function Delivered() {
         getUserLocation();
     }, []);
 
+    
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            router.replace('/preparing'); 
+        } catch (error) {
+            console.error("Erro ao fazer logout: ", error);
+            Alert.alert("Erro", "Não foi possível sair. Tente novamente.");
+        }
+    };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Bem-vindo ao Localizador de Abrigos</Text>
-            <Text style={styles.subtitle}>Sua localização atual é mostrada no mapa abaixo.</Text>
+            {}
+            <Text style={styles.title}>Bem-vindo, {userName}!</Text>
+            <Text style={styles.subtitle}>Sua localização é mostrada no mapa abaixo.</Text>
 
             <View style={styles.mapContainer}>
                 <MapView
                     style={styles.map}
                     region={mapRegion}
                     showsUserLocation={true}
-                    
                 >
                     {}
                 </MapView>
@@ -63,6 +82,14 @@ export default function Delivered() {
                 onPress={() => router.push('/shelterApp')}
             >
                 <Text style={styles.buttonText}>Visualizar Abrigos Disponíveis</Text>
+            </TouchableOpacity>
+
+            {}
+            <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+            >
+                <Text style={styles.logoutButtonText}>Sair (Logout)</Text>
             </TouchableOpacity>
         </View>
     );
@@ -107,14 +134,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 30,
         borderRadius: 25,
         elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
     },
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    
+    logoutButton: {
+        marginTop: 20,
+        paddingVertical: 10,
+    },
+    logoutButtonText: {
+        color: '#E74C3C', 
+        fontSize: 16,
+        fontWeight: '500',
     },
 });

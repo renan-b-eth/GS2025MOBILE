@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth } from './firebaseConfig'; 
-import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-
+// ALTERADO: Importar a função de login também
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from 'firebase/auth';
 
 export interface CadastroFormData {
   nome: string;
@@ -22,8 +22,12 @@ export interface CadastroFormData {
   confirmarSenha?: string; 
 }
 
-export default function CadastroScreen() { 
+export default function Cadastro() { 
   const router = useRouter();
+  
+  // NOVO: Estado para controlar se a tela está em modo de Login ou Cadastro
+  const [isLoginMode, setIsLoginMode] = useState(false);
+
   const [dados, setDados] = useState<CadastroFormData>({
     nome: '',
     email: '',
@@ -46,7 +50,6 @@ export default function CadastroScreen() {
       setErro('A senha deve ter pelo menos 6 caracteres.');
       return false;
     }
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(dados.email)) {
         setErro('Por favor, insira um email válido.');
@@ -64,181 +67,204 @@ export default function CadastroScreen() {
     setErro('');
 
     try {
-      
       const userCredential = await createUserWithEmailAndPassword(auth, dados.email, dados.senha);
       const user = userCredential.user;
-
-      
       if (user) {
-        await updateProfile(user, {
-          displayName: dados.nome,
-        });
-        console.log('Perfil do usuário atualizado com o nome:', dados.nome);
+        await updateProfile(user, { displayName: dados.nome });
       }
 
       Alert.alert(
         "Cadastro Realizado!",
-        "Sua conta foi criada com sucesso. Você será redirecionado.",
-        [{ text: "OK" }]
+        "Sua conta foi criada. Agora faça o login para continuar.",
       );
-      if (router.canGoBack()) {
-        router.back();
-      } else {
-        router.replace('/preparing'); 
-      }
+      
+      // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
+      // Em vez de navegar para outra tela, apenas mudamos o modo para Login.
+      setIsLoginMode(true);
+      // Limpamos os campos para o usuário não precisar apagar
+      setDados({ nome: '', email: dados.email, senha: '', confirmarSenha: '' });
 
     } catch (error: any) {
-      console.error('[DEBUG] Erro detalhado no cadastro:', error);
       if (error.code === 'auth/email-already-in-use') {
         setErro('Este email já está cadastrado. Tente fazer login.');
-      } else if (error.code === 'auth/invalid-email') {
-        setErro('O formato do email é inválido.');
-      } else if (error.code === 'auth/weak-password') {
-        setErro('A senha é muito fraca. Tente uma senha mais forte.');
       } else {
-        setErro('Ocorreu um erro ao tentar criar a conta. Tente novamente.');
+        setErro('Ocorreu um erro ao tentar criar a conta.');
       }
     } finally {
       setCarregando(false);
     }
   };
 
+  // NOVO: Função para o Login
+  const handleLoginFirebase = async () => {
+    if (!dados.email.trim() || !dados.senha.trim()) {
+        setErro('Por favor, preencha email e senha.');
+        return;
+    }
+    Keyboard.dismiss();
+    setCarregando(true);
+    setErro('');
+    try {
+        await signInWithEmailAndPassword(auth, dados.email, dados.senha);
+        // Se o login der certo, vai para a tela de abrigos
+        router.replace('/delivered');
+    } catch (error: any) {
+        setErro('Email ou senha inválidos.');
+    } finally {
+        setCarregando(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Criar Nova Conta</Text>
+      {/* O título muda de acordo com o modo */}
+      <Text style={styles.title}>{isLoginMode ? 'Fazer Login' : 'Criar Nova Conta'}</Text>
+      
       <Image
         source={require('../../../assets/images/logo.png')} 
         style={styles.logo}
       />
 
-      <TextInput
-        style={[styles.input, erro.includes('nome') || erro.includes('todos') ? styles.inputError : {}]}
-        placeholder="Nome Completo"
-        value={dados.nome}
-        onChangeText={(text) => setDados({ ...dados, nome: text })}
-        autoCapitalize="words"
-      />
+      {/* Campo de Nome só aparece no modo de Cadastro */}
+      {!isLoginMode && (
+        <TextInput
+            style={styles.input}
+            placeholder="Nome Completo"
+            value={dados.nome}
+            onChangeText={(text) => setDados({ ...dados, nome: text })}
+            autoCapitalize="words"
+        />
+      )}
 
       <TextInput
-        style={[styles.input, erro.includes('email') || erro.includes('todos') ? styles.inputError : {}]}
+        style={styles.input}
         placeholder="Email"
         value={dados.email}
         onChangeText={(text) => setDados({ ...dados, email: text.trim() })}
         keyboardType="email-address"
         autoCapitalize="none"
-        autoComplete="email"
       />
 
       <TextInput
-        style={[styles.input, erro.includes('senha') || erro.includes('coincidem') || erro.includes('todos') ? styles.inputError : {}]}
-        placeholder="Senha (mínimo 6 caracteres)"
+        style={styles.input}
+        placeholder="Senha"
         value={dados.senha}
         onChangeText={(text) => setDados({ ...dados, senha: text })}
         secureTextEntry={true}
-        autoComplete="new-password"
       />
 
-      <TextInput
-        style={[styles.input, erro.includes('coincidem') || erro.includes('todos') ? styles.inputError : {}]}
-        placeholder="Confirmar Senha"
-        value={dados.confirmarSenha}
-        onChangeText={(text) => setDados({ ...dados, confirmarSenha: text })}
-        secureTextEntry={true}
-        autoComplete="new-password"
-      />
+      {/* Campo de Confirmar Senha só aparece no modo de Cadastro */}
+      {!isLoginMode && (
+        <TextInput
+            style={styles.input}
+            placeholder="Confirmar Senha"
+            value={dados.confirmarSenha}
+            onChangeText={(text) => setDados({ ...dados, confirmarSenha: text })}
+            secureTextEntry={true}
+        />
+      )}
 
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
       <TouchableOpacity
         style={styles.botaoContainer}
-        onPress={handleCadastroFirebase}
+        // A função chamada depende do modo (Login ou Cadastro)
+        onPress={isLoginMode ? handleLoginFirebase : handleCadastroFirebase}
         disabled={carregando}
       >
         {carregando ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.textoBotao}>Cadastrar</Text>
+          // O texto do botão muda
+          <Text style={styles.textoBotao}>{isLoginMode ? 'Entrar' : 'Cadastrar'}</Text>
         )}
       </TouchableOpacity>
 
-       <TouchableOpacity
-          style={styles.botaoLink}
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/delivered')} 
-        >
-          <Text style={styles.textoLink}>Já tem uma conta? Faça Login</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.botaoLink}
+        // Este botão agora apenas troca o modo da tela
+        onPress={() => {
+            setIsLoginMode(!isLoginMode);
+            setErro('');
+        }}
+      >
+        <Text style={styles.textoLink}>
+            {isLoginMode ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Faça Login'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
+// Seus estilos originais sem alteração
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  logo: {
-    width: 120,
-    height: 120, 
-    resizeMode: 'contain',
-    marginBottom: 25,
-  },
-  input: {
-    width: '90%',
-    height: 50,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9'
-  },
-  inputError: {
-    borderColor: 'red',
-    borderWidth: 1, 
-  },
-  botaoContainer: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    borderRadius: 8,
-    width: '90%',
-    alignItems: 'center',
-    minHeight: 50,
-    justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  textoBotao: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  erro: {
-    color: 'red',
-    marginBottom: 12,
-    textAlign: 'center',
-    width: '90%',
-    fontSize: 14,
-  },
-  botaoLink: {
-    marginTop: 20,
-    paddingVertical: 8,
-  },
-  textoLink: {
-     color: '#007AFF',
-     fontSize: 15,
-     fontWeight: '500',
-  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  logo: {
+    width: 120,
+    height: 120, 
+    resizeMode: 'contain',
+    marginBottom: 25,
+  },
+  input: {
+    width: '90%',
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9'
+  },
+  inputError: {
+    borderColor: 'red',
+    borderWidth: 1, 
+  },
+  botaoContainer: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    borderRadius: 8,
+    width: '90%',
+    alignItems: 'center',
+    minHeight: 50,
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  textoBotao: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  erro: {
+    color: 'red',
+    marginBottom: 12,
+    textAlign: 'center',
+    width: '90%',
+    fontSize: 14,
+  },
+  botaoLink: {
+    marginTop: 20,
+    paddingVertical: 8,
+  },
+  textoLink: {
+     color: '#007AFF',
+     fontSize: 15,
+     fontWeight: '500',
+  },
 });
