@@ -23,7 +23,7 @@ Um aplicativo móvel, multiplataforma, desenvolvido com React Native e Expo. Est
 
 Assista a uma demonstração completa das funcionalidades da nossa aplicação no YouTube.
 
-**[Clique aqui para assistir ao vídeo de demonstração](https://youtu.be/uC0C7vRTC-E)** *(Lembre-se de substituir este link pelo vídeo real do seu projeto)*
+**[Clique aqui para assistir ao vídeo de demonstração](https://youtu.be/uC0C7vRTC-E)**
 
 ## 🌟 Principais Funcionalidades
 
